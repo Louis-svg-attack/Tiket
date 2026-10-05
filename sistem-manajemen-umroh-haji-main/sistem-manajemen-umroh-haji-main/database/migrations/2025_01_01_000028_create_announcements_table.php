@@ -1,0 +1,32 @@
+<?php
+
+use App\Enums\AnnouncementAudience;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('announcements', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->cascadeOnDelete(); // null = all branches
+            $table->foreignId('package_id')->nullable()->constrained('packages')->nullOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('title');
+            $table->text('body');
+            $table->string('audience')->default(AnnouncementAudience::All->value)->index();
+            $table->boolean('is_published')->default(true)->index();
+            $table->timestamp('publish_at')->nullable()->index();
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('announcements');
+    }
+};

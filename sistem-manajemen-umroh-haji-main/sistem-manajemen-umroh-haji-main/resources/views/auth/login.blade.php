@@ -1,0 +1,113 @@
+<x-guest-layout
+    title="Masuk"
+    heading="Selamat datang kembali"
+    subheading="Masuk menggunakan akun Anda untuk melanjutkan.">
+
+    {{-- Status sesi (mis. link reset password terkirim) --}}
+    @if (session('status'))
+        <div class="mb-5 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <svg class="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.3a1 1 0 00-1.4-1.4L9 10.6 7.7 9.3a1 1 0 10-1.4 1.4l2 2a1 1 0 001.4 0z" clip-rule="evenodd"/></svg>
+            <span>{{ session('status') }}</span>
+        </div>
+    @endif
+
+    {{-- Ringkasan error --}}
+    @if ($errors->any())
+        <div class="mb-5 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <svg class="mt-0.5 h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-8-4a1 1 0 011 1v4a1 1 0 11-2 0V7a1 1 0 011-1zm0 8.5a1.1 1.1 0 100-2.2 1.1 1.1 0 000 2.2z" clip-rule="evenodd"/></svg>
+            <span>{{ $errors->first() }}</span>
+        </div>
+    @endif
+
+    {{-- Catatan: status "loading" dipasang pada event submit form, BUKAN pada klik
+         tombol. Menonaktifkan tombol submit di dalam handler klik membuat browser
+         membatalkan pengiriman form, sehingga tombol tampak macet di "Memproses…". --}}
+    <form method="POST" action="{{ route('login') }}" class="space-y-4"
+          x-data="{ show: false, loading: false }"
+          x-on:submit="loading ? $event.preventDefault() : (loading = true)"
+          x-on:pageshow.window="loading = false">
+        @csrf
+
+        {{-- Email --}}
+        <div>
+            <label for="email" class="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
+            <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <svg class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+                    </svg>
+                </span>
+                <input id="email" name="email" type="email" inputmode="email"
+                       value="{{ old('email') }}" required autofocus autocomplete="username"
+                       placeholder="nama@travel.com"
+                       class="auth-input @error('email') has-error @enderror">
+            </div>
+            @error('email')
+                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Password --}}
+        <div>
+            <div class="mb-1.5 flex items-center justify-between">
+                <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
+                @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}" class="text-xs font-medium text-brand hover:underline">
+                        Lupa password?
+                    </a>
+                @endif
+            </div>
+            <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <svg class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 00-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 12.75v6.75a2.25 2.25 0 002.25 2.25z"/>
+                    </svg>
+                </span>
+                <input id="password" name="password" type="password"
+                       x-bind:type="show ? 'text' : 'password'"
+                       required autocomplete="current-password"
+                       placeholder="••••••••"
+                       class="auth-input pr-11 @error('password') has-error @enderror">
+                <button type="button" @click="show = !show" tabindex="-1"
+                        :aria-label="show ? 'Sembunyikan password' : 'Tampilkan password'"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 transition hover:text-slate-600">
+                    <svg x-show="!show" class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <svg x-show="show" x-cloak class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L9.88 9.88"/>
+                    </svg>
+                </button>
+            </div>
+            @error('password')
+                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Remember me --}}
+        <label for="remember_me" class="flex cursor-pointer select-none items-center gap-2.5 pt-1">
+            <input id="remember_me" name="remember" type="checkbox"
+                   class="h-4 w-4 rounded border-slate-300 text-brand focus:ring-0 focus:ring-offset-0"
+                   style="color: var(--brand)">
+            <span class="text-sm text-slate-600">Ingat saya di perangkat ini</span>
+        </label>
+
+        {{-- Submit --}}
+        <button type="submit" class="auth-btn !mt-6"
+                x-bind:class="loading && 'cursor-wait opacity-80'"
+                x-bind:aria-busy="loading">
+            <svg x-show="loading" x-cloak class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4z"></path>
+            </svg>
+            <span x-text="loading ? 'Memproses…' : 'Masuk'">Masuk</span>
+        </button>
+    </form>
+
+    <div class="mt-7 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-500">
+        <span class="font-semibold text-slate-600">Belum punya akun?</span>
+        Akun jamaah, agen, dan muthawif dibuat oleh staf kantor.
+        Silakan hubungi admin cabang Anda untuk mendapatkan akses.
+    </div>
+</x-guest-layout>
